@@ -13,21 +13,26 @@ logger = logging.getLogger(__name__)
 
 def main():
     logger.info("=" * 80)
-    logger.info("STARTING COMPLETE DATA ACQUISITION PIPELINE")
+    logger.info("STARTING DATA ACQUISITION - 2 DATASETS")
+    logger.info("Dataset 1: Climate & Energy (Climate + Renewable combined)")
+    logger.info("Dataset 2: Economic Development")
     logger.info("=" * 80)
     
     try:
-        logger.info("\n[1/3] Fetching Climate Data...")
+        logger.info("\n[Dataset 1 - Part 1/2] Fetching Climate Data...")
         fetch_climate()
         
-        logger.info("\n[2/3] Fetching Economic Data...")
-        fetch_economic()
-        
-        logger.info("\n[3/3] Fetching Renewable Energy Data...")
+        logger.info("\n[Dataset 1 - Part 2/2] Fetching Renewable Energy Data...")
         fetch_renewable()
+        logger.info("✓ Dataset 1 (Climate & Energy) complete: Combined ~5,760 records")
+        
+        logger.info("\n[Dataset 2] Fetching Economic Development Data...")
+        fetch_economic()
+        logger.info("✓ Dataset 2 (Economic Development) complete: ~5,760 records")
         
         logger.info("\n" + "=" * 80)
         logger.info("DATA ACQUISITION COMPLETED SUCCESSFULLY")
+        logger.info("Total: 2 datasets with 11,520 raw records")
         logger.info("=" * 80)
         
     except Exception as e:

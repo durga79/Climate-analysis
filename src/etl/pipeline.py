@@ -16,7 +16,9 @@ logger = logging.getLogger(__name__)
 
 def run_etl_pipeline():
     logger.info("=" * 80)
-    logger.info("STARTING ETL PIPELINE")
+    logger.info("STARTING ETL PIPELINE - 2 DATASETS")
+    logger.info("Dataset 1: Climate & Energy (Climate + Renewable combined)")
+    logger.info("Dataset 2: Economic Development")
     logger.info("=" * 80)
     
     try:

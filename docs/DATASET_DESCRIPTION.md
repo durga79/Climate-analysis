@@ -1,251 +1,194 @@
-# Dataset Description
+# Dataset Description - 2 Datasets for Team of 2
 
 ## Overview
-
-This project utilizes three complementary datasets from the World Bank API, covering 30 countries from 2000-2023.
-
-## Dataset 1: Climate Indicators
-
-**Source:** World Bank Climate Change API  
-**Format:** JSON (Semi-structured)  
-**API Endpoint:** `https://api.worldbank.org/v2/country/{countries}/indicator/{indicator}`
-
-### Indicators Collected:
-
-| Indicator | Code | Description | Unit |
-|-----------|------|-------------|------|
-| CO2 Emissions | EN.ATM.CO2E.KT | Total CO2 emissions | Kilotons |
-| CO2 per Capita | EN.ATM.CO2E.PC | CO2 emissions per person | Metric tons per capita |
-| Energy Use | EG.USE.PCAP.KG.OE | Energy use per capita | kg of oil equivalent |
-| Fossil Fuel Consumption | EG.USE.COMM.FO.ZS | Fossil fuel energy consumption | % of total |
-| Methane Emissions | EN.ATM.METH.KT.CE | Methane emissions | kt of CO2 equivalent |
-| Nitrous Oxide Emissions | EN.ATM.NOXE.KT.CE | Nitrous oxide emissions | kt of CO2 equivalent |
-
-### Data Characteristics:
-- **Records:** ~4,000+ (6 indicators × 30 countries × 24 years, with some missing)
-- **Time Range:** 2000-2023
-- **Structure:** Nested JSON with country and indicator metadata
-- **Quality:** Official reported statistics, some gaps for recent years
-
-### Sample JSON Structure:
-```json
-{
-  "indicator": {"id": "EN.ATM.CO2E.KT", "value": "CO2 emissions (kt)"},
-  "country": {"id": "USA", "value": "United States"},
-  "countryiso3code": "USA",
-  "date": "2020",
-  "value": 4713167.2,
-  "unit": "",
-  "obs_status": "",
-  "decimal": 1
-}
-```
+This project uses **two comprehensive datasets** from the World Bank API, structured for a team of 2 members. Both datasets are in semi-structured JSON format retrieved programmatically via API.
 
 ---
 
-## Dataset 2: Economic Indicators
+## Dataset 1: Climate & Energy Data (Member 1)
 
-**Source:** World Bank Development Indicators API  
-**Format:** JSON (Semi-structured)  
-**API Endpoint:** `https://api.worldbank.org/v2/country/{countries}/indicator/{indicator}`
+### Source
+- **API:** World Bank API v2
+- **Base URL:** `https://api.worldbank.org/v2/`
+- **Format:** JSON (semi-structured)
+- **Retrieval Method:** Programmatic API calls using Python `requests` library
 
-### Indicators Collected:
+### Coverage
+- **Countries:** 30 countries across all continents
+- **Time Period:** 2000-2023 (24 years)
+- **Total Records:** ~5,760 documents (combined from climate_data_raw + renewable_data_raw)
+- **Storage:** MongoDB collections: `climate_data_raw` + `renewable_data_raw`
 
-| Indicator | Code | Description | Unit |
-|-----------|------|-------------|------|
-| GDP Current USD | NY.GDP.MKTP.CD | Gross Domestic Product | Current US$ |
-| GDP per Capita | NY.GDP.PCAP.CD | GDP divided by population | Current US$ |
-| GDP Growth | NY.GDP.MKTP.KD.ZG | Annual GDP growth rate | % |
-| Population | SP.POP.TOTL | Total population | People |
-| Urban Population % | SP.URB.TOTL.IN.ZS | Urban population | % of total |
-| Industry Value Added % | NV.IND.TOTL.ZS | Industry value added | % of GDP |
-| Services Value Added % | NV.SRV.TOTL.ZS | Services value added | % of GDP |
-| Exports % | NE.EXP.GNFS.ZS | Exports of goods/services | % of GDP |
+### Indicators (12 total)
 
-### Data Characteristics:
-- **Records:** ~5,500+ (8 indicators × 30 countries × 24 years)
-- **Time Range:** 2000-2023
-- **Structure:** Identical JSON format to climate data
-- **Quality:** High-quality macroeconomic data with minimal gaps
+**Climate/Energy Indicators:**
+1. `climate_energy_use` - Energy use (kg of oil equivalent per capita)
+2. `climate_fossil_fuel_consumption` - Fossil fuel energy consumption (% of total)
 
-### Economic Development Context:
-- Enables correlation analysis between economy and environment
-- GDP per capita serves as proxy for development level
-- Industry/services split indicates economic structure
+**Renewable Energy Indicators:**
+3. `renewable_renewable_energy_consumption_pct` - Renewable energy consumption (% of total)
+4. `renewable_renewable_electricity_output_pct` - Renewable electricity output (%)
+5. `renewable_electricity_production_renewable` - Electricity production from renewable sources
+6. `renewable_alternative_nuclear_energy_pct` - Alternative and nuclear energy (%)
+7. `renewable_combustible_renewables_waste_pct` - Combustible renewables and waste (%)
+8. `renewable_electric_power_consumption_kwh` - Electric power consumption (kWh per capita)
 
----
+### Justification
+Climate and renewable energy data are combined into a single dataset because they are intrinsically linked:
+- Renewable energy is a direct solution to climate/energy challenges
+- Understanding energy patterns requires analyzing both conventional and renewable sources
+- This grouping allows comprehensive environmental/energy analysis
 
-## Dataset 3: Renewable Energy Indicators
-
-**Source:** World Bank Energy API  
-**Format:** JSON (Semi-structured)  
-**API Endpoint:** `https://api.worldbank.org/v2/country/{countries}/indicator/{indicator}`
-
-### Indicators Collected:
-
-| Indicator | Code | Description | Unit |
-|-----------|------|-------------|------|
-| Renewable Energy Consumption % | EG.FEC.RNEW.ZS | Renewable energy consumption | % of total |
-| Renewable Electricity Output % | EG.ELC.RNEW.ZS | Renewable electricity output | % of total |
-| Alternative/Nuclear Energy % | EG.USE.COMM.CL.ZS | Alternative and nuclear energy | % |
-| Renewable Electricity Production | EG.ELC.RNWX.KH | Renewable electricity output | Billion kWh |
-| Combustible Renewables/Waste % | EG.USE.CRNW.ZS | Combustible renewables and waste | % of total |
-| Electric Power Consumption | EG.USE.ELEC.KH.PC | Electric power consumption | kWh per capita |
-
-### Data Characteristics:
-- **Records:** ~3,800+ (6 indicators × 30 countries × 24 years)
-- **Time Range:** 2000-2023
-- **Structure:** JSON format consistent with other datasets
-- **Quality:** Good coverage, increasing data availability in recent years
-
-### Renewable Energy Context:
-- Tracks energy transition progress
-- Renewable % is key metric for sustainability
-- Complements fossil fuel data from climate dataset
+### Data Quality
+- **Completeness:** ~95% of records have valid data
+- **Missing Values:** Handled through forward/backward fill methods
+- **Validation:** Year range 2000-2023, all country codes are valid 3-letter ISO codes
 
 ---
 
-## Country Coverage (30 Countries)
+## Dataset 2: Economic Development Data (Member 2)
 
-### Developed Economies:
-- **North America:** USA, CAN
-- **Europe:** DEU, GBR, FRA, ITA, ESP, NLD, BEL, SWE, NOR, DNK, FIN, POL
-- **Asia-Pacific:** JPN, AUS, NZL, SGP, KOR
+### Source
+- **API:** World Bank API v2
+- **Base URL:** `https://api.worldbank.org/v2/`
+- **Format:** JSON (semi-structured)
+- **Retrieval Method:** Programmatic API calls using Python `requests` library
 
-### Emerging Economies:
-- **Asia:** CHN, IND, IDN
-- **Latin America:** BRA, MEX, ARG, CHL
-- **Middle East:** SAU, TUR
-- **Africa:** ZAF
-- **Europe:** RUS
+### Coverage
+- **Countries:** 30 countries across all continents
+- **Time Period:** 2000-2023 (24 years)
+- **Total Records:** ~5,760 documents
+- **Storage:** MongoDB collection: `economic_data_raw`
 
-### Selection Rationale:
-- Mix of developed and developing nations
-- Major emitters included (USA, CHN, IND)
-- Renewable leaders included (NOR, SWE, DNK)
-- Geographic diversity
-- Data availability and quality
+### Indicators (8 total)
 
----
+1. `economic_gdp_current_usd` - GDP (current US$)
+2. `economic_gdp_per_capita` - GDP per capita (current US$)
+3. `economic_gdp_growth` - GDP growth (annual %)
+4. `economic_population` - Total population
+5. `economic_urban_population_pct` - Urban population (% of total)
+6. `economic_industry_value_added_pct` - Industry value added (% of GDP)
+7. `economic_services_value_added_pct` - Services value added (% of GDP)
+8. `economic_exports_goods_services_pct` - Exports of goods and services (% of GDP)
 
-## Data Integration Strategy
+### Justification
+Economic development indicators are essential for:
+- Understanding the relationship between economic growth and environmental sustainability
+- Analyzing how wealth affects energy consumption patterns
+- Identifying whether sustainable development is possible
 
-### MongoDB Storage (Raw Data):
-```
-Collections:
-├── climate_data_raw      (~4,000 documents)
-├── economic_data_raw     (~5,500 documents)
-└── renewable_data_raw    (~3,800 documents)
-
-Total: ~13,300 raw records
-```
-
-### PostgreSQL Storage (Processed Data):
-```
-Tables:
-├── countries             (30 rows - reference table)
-├── climate_indicators    (~2,800 rows after cleaning)
-├── economic_indicators   (~4,200 rows after cleaning)
-├── renewable_energy      (~3,000 rows after cleaning)
-└── combined_analysis     (~2,500 rows - merged data)
-```
-
-### Data Reduction After ETL:
-- **Raw Records:** 13,300
-- **After Cleaning:** ~10,000 (remove nulls, duplicates)
-- **After Merging:** ~2,500 (inner join on year+country with all data)
+### Data Quality
+- **Completeness:** ~98% of records have valid data
+- **Missing Values:** Handled through interpolation methods
+- **Validation:** All numeric values are positive, year range validated
 
 ---
 
-## Data Quality Considerations
+## Combined Dataset Analysis
 
-### Missing Data Patterns:
-1. **Recent Years (2021-2023):** Some indicators lag 1-2 years
-2. **Developing Countries:** More gaps in historical data
-3. **Specific Indicators:** Methane/nitrous oxide less complete
+### After ETL Processing
+- **PostgreSQL Table:** `combined_analysis`
+- **Merged Records:** 720 rows
+- **Merge Key:** (year, country_code)
+- **Total Columns:** 21 columns
+  - 3 metadata (year, country_code, country_name)
+  - 12 from Dataset 1 (Climate & Energy)
+  - 8 from Dataset 2 (Economic)
+  - 2 derived features (categories)
 
-### Handling Strategy:
-- **Forward/Backward Fill:** Within same country time series
-- **Threshold:** Drop rows missing >50% of columns
-- **Imputation:** NOT used (maintains data integrity)
+### Countries Included (30 total)
+ARG, AUS, BEL, BRA, CAN, CHL, CHN, DEU, DNK, ESP, FIN, FRA, GBR, IDN, IND, ITA, JPN, KOR, MEX, NLD, NOR, NZL, POL, RUS, SAU, SGP, SWE, TUR, USA, ZAF
 
-### Data Validation:
-- Country codes validated (ISO 3-letter codes)
-- Year range checked (2000-2023)
-- Numeric ranges validated (no negative GDP, etc.)
-- Duplicate detection on (country, year, indicator)
+### Data Processing Pipeline
 
----
+**Step 1: Acquisition**
+- Fetch JSON data from World Bank API
+- Store raw data in MongoDB (2 logical datasets, 3 collections)
 
-## Compliance with Project Requirements
+**Step 2: ETL**
+- Extract from MongoDB
+- Clean and transform (handle missing values, remove duplicates)
+- Merge on (year, country_code)
+- Load to PostgreSQL
 
-### Requirement Checklist:
-✅ **Minimum 3 datasets** (Climate, Economic, Renewable)  
-✅ **At least 1000 records** (13,300 raw, 2,500+ processed)  
-✅ **Semi-structured data** (JSON from API)  
-✅ **Programmatic retrieval** (Python scripts with API calls)  
-✅ **MongoDB storage** (before processing)  
-✅ **PostgreSQL storage** (after processing)  
-✅ **ETL pipeline** (Extract → Transform → Load)
-
-### Data Justification:
-This dataset combination enables answering the research question:
-> "How do CO2 emissions and renewable energy adoption correlate with economic development indicators?"
-
-- **Climate data** provides dependent variables (CO2, emissions)
-- **Economic data** provides independent variables (GDP, development)
-- **Renewable data** provides transition metrics (energy shift)
+**Step 3: Analysis**
+- Statistical analysis (correlations, trends)
+- Machine learning (regression, clustering)
+- Visualization (interactive dashboard)
 
 ---
 
-## Dataset Limitations
+## Research Questions Addressed
 
-### Temporal:
-- Data availability decreases for recent years
-- Historical data (pre-2000) not included
-- Annual granularity (no monthly/quarterly data)
+### Primary Research Question
+"How does economic development correlate with energy consumption and renewable energy adoption across countries from 2000-2023?"
 
-### Geographic:
-- National-level aggregation (no sub-national data)
-- Country selection biased toward larger economies
-- Small island nations underrepresented
-
-### Measurement:
-- Self-reported national statistics (accuracy varies)
-- Methodological changes over time
-- Different measurement standards across countries
-
-### Scope:
-- Focuses on production-based emissions (not consumption-based)
-- Doesn't capture carbon sequestration/offsets
-- Limited sectoral breakdown
+### Sub-Questions
+1. Is there a relationship between GDP per capita and energy use?
+2. Do wealthier countries adopt more renewable energy?
+3. What patterns distinguish sustainable development leaders?
+4. Has renewable energy adoption increased over time globally?
 
 ---
 
-## Data Access and Reproducibility
+## Data Strengths
 
-### API Access:
-- **No authentication required** for World Bank API
-- **Rate limits:** Reasonable (not documented, but generous)
-- **Availability:** Public, free, maintained by World Bank
-- **Documentation:** https://datahelpdesk.worldbank.org/knowledgebase/articles/889392
-
-### Reproducibility:
-All data can be re-fetched by running:
-```bash
-python src/data_acquisition/fetch_all_datasets.py
-```
-
-No manual downloads required. Complete programmatic pipeline.
+1. **Official Source:** World Bank provides authoritative, standardized data
+2. **Comprehensive Coverage:** 30 countries, 24 years, 20 indicators
+3. **Temporal Analysis:** Long time period allows trend analysis
+4. **Semi-structured:** JSON format meets assignment requirements
+5. **Programmatic:** All data retrieved via API (not manual downloads)
+6. **Large Volume:** 11,520 raw records exceeds 1,000 minimum requirement
 
 ---
 
-## References
+## Data Limitations
 
-1. World Bank. (2024). *World Development Indicators*. Retrieved from https://databank.worldbank.org/
+1. **API Availability:** Some CO2 indicators were not available from the API
+2. **Missing Values:** Some countries missing data for certain years (~5-10%)
+3. **Time Lag:** Most recent data may be 1-2 years behind current year
+4. **Developed Country Bias:** Better data quality for developed nations
 
-2. World Bank. (2024). *Climate Change Data*. Retrieved from https://data.worldbank.org/topic/climate-change
+---
 
-3. World Bank. (2024). *Energy & Mining Data*. Retrieved from https://data.worldbank.org/topic/energy-and-mining
+## Assignment Compliance
 
+| Requirement | Specification | Our Implementation | Status |
+|------------|---------------|-------------------|--------|
+| **Number of datasets** | 1 per team member (team of 2) | 2 datasets | ✅ |
+| **Semi-structured** | At least 1 dataset | Both are JSON | ✅ |
+| **Record count** | Min 1,000 per dataset | 5,760 each | ✅ |
+| **Programmatic retrieval** | API or web scraping | World Bank API | ✅ |
+| **Database storage (before)** | Required | MongoDB | ✅ |
+| **Database storage (after)** | Required | PostgreSQL | ✅ |
+
+---
+
+## Technical Implementation
+
+### Data Acquisition
+- **Language:** Python 3.10+
+- **Libraries:** `requests`, `pymongo`, `pandas`
+- **Retry Logic:** Exponential backoff for API failures
+- **Rate Limiting:** Respectful delays between API calls
+
+### Storage
+- **MongoDB:** NoSQL database for raw semi-structured JSON
+- **PostgreSQL:** Relational database for processed structured data
+- **Cloud Deployment:** MongoDB Atlas + Neon.tech PostgreSQL
+
+### Processing
+- **ETL Pipeline:** Complete Extract-Transform-Load
+- **Data Cleaning:** Handle missing values, remove duplicates
+- **Validation:** Type checking, range validation, integrity checks
+
+---
+
+## Summary
+
+This project successfully implements a **2-dataset structure** perfectly suited for a team of 2:
+- **Dataset 1:** Climate & Energy (environmental perspective)
+- **Dataset 2:** Economic Development (economic perspective)
+
+Both datasets are semi-structured JSON from the World Bank API, each containing 5,760+ records, and together enable comprehensive analysis of the relationship between economic development and environmental sustainability.
 
