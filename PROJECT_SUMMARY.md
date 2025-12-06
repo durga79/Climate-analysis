@@ -4,7 +4,7 @@
 
 **Title:** Climate Analytics & Economic Development: A Data-Driven Analysis
 
-**Research Question:** How do CO2 emissions and renewable energy adoption correlate with economic development indicators across countries from 2000-2023, and what patterns distinguish high-performing sustainability leaders?
+**Research Question:** How does economic development correlate with energy consumption and renewable energy adoption across countries from 2000-2023, and what patterns distinguish sustainable development leaders?
 
 **Domain:** Climate & Environment + Economic Indicators
 
@@ -26,7 +26,7 @@
 
 | Requirement | Specification | Implementation | Status |
 |-------------|---------------|----------------|--------|
-| **Datasets** | Min 1 per member (2-3) | 3 datasets (Climate, Economic, Renewable) | ✅ |
+| **Datasets** | Min 1 per member (team of 2) | 2 datasets (Climate & Energy, Economic Development) | ✅ |
 | **Semi-structured** | At least 1 dataset | All 3 datasets are JSON from API | ✅ |
 | **Record Count** | Min 1,000 per dataset | 4,000 + 5,500 + 3,800 = 13,300 | ✅ |
 | **Programmatic Retrieval** | API/scraping | World Bank API with Python requests | ✅ |
@@ -194,35 +194,32 @@ climate-analytics-project/
 
 ## 📊 Datasets
 
-### Dataset 1: Climate Indicators (World Bank API)
+### Dataset 1: Climate & Energy Indicators (World Bank API)
 - **Source:** `https://api.worldbank.org/v2/`
 - **Format:** JSON (semi-structured)
-- **Indicators:** 6 (CO2 emissions, CO2 per capita, energy use, fossil fuel %, methane, nitrous oxide)
+- **Indicators:** 12 combined (energy use, fossil fuel %, renewable energy %, renewable electricity %, electricity production from renewables, alternative/nuclear energy %, combustible renewables & waste %, electric power consumption)
 - **Countries:** 30
 - **Years:** 2000-2023
-- **Records:** ~4,000
-- **Storage:** MongoDB collection `climate_data_raw`
+- **Records:** ~5,760 (combined from climate_data_raw + renewable_data_raw)
+- **Storage:** MongoDB collections `climate_data_raw` + `renewable_data_raw`
+- **Team Member:** Member 1
+- **Justification:** Climate and renewable energy are intrinsically linked - analyzing energy patterns and renewable adoption together
 
-### Dataset 2: Economic Indicators (World Bank API)
+### Dataset 2: Economic Development Indicators (World Bank API)
 - **Source:** `https://api.worldbank.org/v2/`
 - **Format:** JSON (semi-structured)
 - **Indicators:** 8 (GDP, GDP per capita, GDP growth, population, urbanization, industry %, services %, exports %)
 - **Countries:** 30
 - **Years:** 2000-2023
-- **Records:** ~5,500
+- **Records:** ~5,760
 - **Storage:** MongoDB collection `economic_data_raw`
+- **Team Member:** Member 2
+- **Justification:** Economic development indicators to analyze the relationship between economic growth and environmental sustainability
 
-### Dataset 3: Renewable Energy (World Bank API)
-- **Source:** `https://api.worldbank.org/v2/`
-- **Format:** JSON (semi-structured)
-- **Indicators:** 6 (renewable %, renewable electricity %, nuclear %, renewable production, waste %, power consumption)
-- **Countries:** 30
-- **Years:** 2000-2023
-- **Records:** ~3,800
-- **Storage:** MongoDB collection `renewable_data_raw`
+**Total Raw Records:** 11,520 (5,760 + 5,760)  
+**Processed Records:** 720 (after cleaning and merging)
 
-**Total Raw Records:** 13,300+  
-**Processed Records:** ~2,500 (after cleaning and merging)
+**Note:** We logically group Climate and Renewable Energy data as one dataset (Dataset 1) since they represent environmental/energy aspects, while Economic data forms Dataset 2. This gives us 2 datasets for our team of 2 members, each exceeding 1,000 records.
 
 ---
 

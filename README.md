@@ -1,15 +1,14 @@
 # Climate Analytics & Economic Development Project
 
 ## Research Question
-How do CO2 emissions and renewable energy adoption correlate with economic development indicators across countries from 2000-2023, and what patterns distinguish high-performing sustainability leaders?
+How does economic development correlate with energy consumption and renewable energy adoption across countries from 2000-2023, and what patterns distinguish sustainable development leaders?
 
 ## Project Overview
 This project analyzes the relationship between environmental sustainability metrics and economic development across multiple countries, utilizing comprehensive datasets from international organizations.
 
-## Datasets
-1. **World Bank Climate Data** (JSON) - CO2 emissions, energy consumption
-2. **World Bank Economic Indicators** (JSON) - GDP, GDP per capita, growth rates  
-3. **IRENA Renewable Energy Data** (JSON/XML) - Renewable energy capacity and adoption
+## Datasets (2 datasets for team of 2 members)
+1. **Climate & Energy Data** (JSON) - Energy consumption, fossil fuel %, renewable energy indicators (12 indicators, 5,760 records)
+2. **Economic Development Data** (JSON) - GDP, population, growth rates, urbanization (8 indicators, 5,760 records)
 
 ## Technology Stack
 - **Language**: Python 3.11+
