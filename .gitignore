@@ -1,0 +1,51 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+*.egg-info/
+dist/
+build/
+
+# Environment
+.env
+.env.local
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Data files (large)
+data/raw/*.csv
+data/raw/*.json
+data/raw/*.xml
+data/processed/*.csv
+
+# Logs
+*.log
+*.log.*
+dashboard.log
+nohup.out
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+# Test cache
+.pytest_cache/
+.coverage
+
+# Temporary files
+*.tmp
+*.bak
+*~
