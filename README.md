@@ -53,6 +53,23 @@ WORLD_BANK_API_BASE=https://api.worldbank.org/v2/
 ```
 
 ### 4. Run Data Pipeline
+
+#### Linux / Mac
+```bash
+# Make the script executable first
+chmod +x run_full_pipeline.sh
+
+# Run the full pipeline (Acquisition -> ETL -> Analysis -> Dashboard)
+./run_full_pipeline.sh
+```
+
+#### Windows
+Double-click `run_full_pipeline.bat` or run it from command prompt:
+```cmd
+run_full_pipeline.bat
+```
+
+Alternatively, run steps manually:
 ```bash
 # Acquire data
 python src/data_acquisition/fetch_all_datasets.py
@@ -62,6 +79,9 @@ python src/etl/pipeline.py
 
 # Run analysis
 python src/analysis/run_analysis.py
+
+# Launch Dashboard
+python dashboard/app.py
 ```
 
 ### 5. Launch Dashboard
