@@ -9,11 +9,11 @@
 ---
 
 ## Abstract
-This project presents a comprehensive, full-stack data analytics platform designed to investigate the complex, non-linear relationship between economic development and environmental sustainability. In an era where data-driven policy making is paramount, we developed a robust data engineering pipeline to programmatically acquire, process, and visualize historical data (2000-2023) from the World Bank API. The dataset covers critical indicators including GDP per capita, CO2 emissions per capita, renewable energy consumption, and population growth across a diverse set of nations.
+This project presents a comprehensive, full-stack data analytics platform designed to investigate the complex, non-linear relationship between economic development and environmental sustainability. In an era where data-driven policy making is paramount, the ability to synthesize heterogeneous data sources into actionable intelligence is a critical skill. We developed a robust data engineering pipeline to programmatically acquire, process, and visualize historical data (2000-2023) from the World Bank API. The dataset covers critical indicators including GDP per capita, CO2 emissions per capita, renewable energy consumption, and population growth across a diverse set of 30 representative nations.
 
-The system is built upon a "Polyglot Persistence" architecture, utilizing MongoDB for the flexible storage of raw, semi-structured JSON data and PostgreSQL for the storage of cleaned, structured analytical tables. An automated Extract-Transform-Load (ETL) pipeline, implemented in Python, orchestrates the complex tasks of data ingestion, normalization, cleaning (handling missing values via time-series interpolation), and integration. 
+The system is built upon a "Polyglot Persistence" architecture, utilizing MongoDB for the flexible storage of raw, semi-structured JSON data and PostgreSQL for the storage of cleaned, structured analytical tables. An automated Extract-Transform-Load (ETL) pipeline, implemented in Python 3.10, orchestrates the complex tasks of data ingestion, normalization, cleaning (handling missing values via time-series interpolation), and integration. 
 
-Beyond simple aggregation, we applied advanced machine learning techniques—specifically K-Means clustering and Random Forest regression—to identify distinct "sustainability profiles" among nations and to quantify the predictive power of economic factors on carbon output. The findings are disseminated through a high-performance, interactive web dashboard built with Plotly Dash, which allows users to explore trends dynamically. Our analysis reveals that while energy use remains the primary driver of emissions globally, a distinct cluster of nations has successfully decoupled economic growth from carbon output through aggressive renewable energy adoption. This report details the technical implementation, the challenges encountered in data harmonization, and the statistical validity of our findings.
+Beyond simple aggregation, we applied advanced machine learning techniques—specifically K-Means clustering and Random Forest regression—to identify distinct "sustainability profiles" among nations and to quantify the predictive power of economic factors on carbon output. The findings are disseminated through a high-performance, interactive web dashboard built with Plotly Dash, which allows users to explore trends dynamically. Our analysis reveals that while energy use remains the primary driver of emissions globally (Feature Importance: 72%), a distinct cluster of nations has successfully decoupled economic growth from carbon output through aggressive renewable energy adoption. This report details the technical implementation, the challenges encountered in data harmonization, and the statistical validity of our findings.
 
 ## 1. Introduction
 
@@ -64,15 +64,15 @@ The foundation of the project is the `src/data_acquisition` module. We chose the
     *   `SP.URB.TOTL.IN.ZS`: Urban population (% of total).
 
 **Implementation Details:**
-We created a base class `WorldBankFetcher` that handles the HTTP `GET` requests. A critical challenge here was **Pagination**. The API returns data in pages of 50 records. Our script implements a recursive loop to detect the `total_pages` metadata and iterate through all available pages to ensure complete data retrieval.
+We created a base class `WorldBankFetcher` using the Python `requests` library. A critical challenge here was **Pagination**. The API returns data in pages of 50 records. Our script implements a recursive loop to detect the `total_pages` metadata and iterate through all available pages to ensure complete data retrieval. We also implemented an **Exponential Backoff** strategy to handle API timeouts (retrying after 1s, 2s, 4s).
 
 ### 3.2 Database Architecture (Storage)
 We implemented a **Tiered Storage Architecture**:
 
 **Tier 1: Raw Data Lake (MongoDB)**
 We utilized MongoDB (hosted on MongoDB Atlas) to store the raw API responses.
-*   **Why MongoDB?** The World Bank API returns nested JSON objects containing metadata about the indicator, country, and date. Flattening this immediately would risk losing context. Storing it as a "Document" allows us to preserve the exact state of the data as it was received.
-*   **Collection Strategy:** We separated data into three collections: `climate_data`, `economic_data`, and `renewable_data`. This logical separation improves query performance and organization.
+*   **Why MongoDB?** The World Bank API returns nested JSON objects. For example, the country field is not just a string but a dictionary: `{"id": "US", "value": "United States"}`. Flattening this immediately would risk losing context. Storing it as a "Document" allows us to preserve the exact state of the data as it was received.
+*   **Collection Strategy:** We separated data into three collections: `climate_raw`, `economic_raw`, and `renewable_raw`. This logical separation improves query performance and organization.
 
 **Tier 2: Analytical Data Warehouse (PostgreSQL)**
 We utilized PostgreSQL (hosted on Neon Tech) for the processed data.
@@ -85,44 +85,48 @@ The core logic resides in `src/etl/pipeline.py`. This script orchestrates the fl
 1.  **Extract:** The `DataExtractor` class connects to MongoDB. It uses the aggregation pipeline to project only the necessary fields (`country.value`, `date`, `value`, `indicator.id`) from the deep JSON structure, returning a raw Pandas DataFrame.
 
 2.  **Transform:** The `DataTransformer` class performs the heavy lifting:
-    *   **Pivoting:** The raw data is in "Long Format" (Entity-Attribute-Value). We pivoted this to "Wide Format" so that each indicator became a column (e.g., `climate_co2`).
+    *   **Pivoting:** The raw data is in "Long Format" (Entity-Attribute-Value). We pivoted this to "Wide Format" using `pd.pivot_table`, so that each indicator became a column (e.g., `climate_co2`).
     *   **Data Cleaning:** We identified significant missing data in the 2022-2023 range for some indicators. We implemented a **Time-Series Interpolation** strategy. First, we used `ffill()` (Forward Fill) to propagate the last known valid observation forward to fill recent gaps. Then, we used `bfill()` (Backward Fill) for older gaps. This assumes that economic/climate metrics do not fluctuate wildly year-over-year, which is a statistically valid assumption for this domain.
     *   **Feature Engineering:** We created a derived feature `renewable_adoption_category`, binning countries into 'Low', 'Medium', and 'High' based on their renewable percentage.
 
 3.  **Load:** The `DataLoader` class uses SQLAlchemy to insert the clean DataFrame into PostgreSQL. We used the `to_sql(if_exists='replace')` method to ensure the analysis table is completely refreshed on every pipeline run, preventing duplicate records.
 
-### 3.4 Challenges and Solutions
-Throughout the development, we encountered several significant challenges:
+### 3.4 Data Processing Challenges and Solutions
+Throughout the development lifecycle, we encountered several significant challenges that required specific engineering solutions:
 
-*   **Challenge 1: API Rate Limiting & Timeouts**
-    *   *Problem:* Frequent requests to the World Bank API occasionally resulted in timeouts or incomplete downloads.
-    *   *Solution:* We implemented an "Exponential Backoff" retry mechanism. If a request fails, the script waits for 1 second, then 2, then 4, before retrying. This ensures resilience against transient network issues.
+*   **Challenge 1: Inconsistent API Data Availability**
+    *   *Problem:* The World Bank API does not update all indicators simultaneously. While GDP data for 2023 might be available, CO2 emissions data often lags by 2-3 years. This resulted in `NaN` values when merging datasets on the `year` key, potentially causing our Machine Learning models to crash or drop entire years of valid economic data.
+    *   *Solution:* We implemented a dynamic column checking mechanism in `src/analysis/ml_models.py`. Before running clustering, the code explicitly checks `if 'climate_co2_per_capita' in df.columns`. If the specific CO2 column is missing or entirely null for a given year, the model falls back to using `climate_energy_use` as a proxy variable. This "graceful degradation" ensures the pipeline completes even with partial data.
 
-*   **Challenge 2: Inconsistent Data Availability**
-    *   *Problem:* CO2 data is typically released with a 2-3 year lag, while GDP data is more current. This created `NaN` values in the merged dataset for recent years.
-    *   *Solution:* We implemented a dynamic check in the ML pipeline. The code specifically checks `if 'climate_co2_per_capita' in df.columns`. If the column is missing or entirely null for a specific year, the model falls back to using `climate_energy_use` as a proxy, ensuring the pipeline doesn't crash.
+*   **Challenge 2: Cross-Module Import Resolution**
+    *   *Problem:* As our project structure grew more complex with nested directories (`src/etl`, `src/analysis`, `config/`), Python scripts failed to import the `database_config` module when run directly from the terminal, throwing `ModuleNotFoundError`.
+    *   *Solution:* We implemented a programmatic path modification. In the header of every executable script, we added:
+      ```python
+      sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../..'))
+      ```
+      This explicitly adds the project root to the Python path at runtime, ensuring reliable imports regardless of the working directory.
 
-*   **Challenge 3: Module Import Errors**
-    *   *Problem:* Python's relative imports failed when running scripts from different directories.
-    *   *Solution:* We added `sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../..'))` to the header of every script. This programmatically adds the project root to the Python path, ensuring that `src.database` can be imported from anywhere.
+*   **Challenge 3: Database Connection Stability**
+    *   *Problem:* During bulk insert operations to the cloud-hosted PostgreSQL database (Neon Tech), we occasionally experienced connection timeouts due to latency.
+    *   *Solution:* We wrapped our `PostgresHandler` operations in a `try-finally` block. This ensures that the database cursor is always closed and the connection returned to the pool, preventing "connection leak" issues that would otherwise freeze the application after multiple runs.
 
 ## 4. Data Visualisation Methodology
 
 ### 4.1 Theoretical Framework
-Our visualization strategy was grounded in **Tufte’s Principles of Graphical Integrity**. We aimed to maximize the "Data-Ink Ratio" by removing unnecessary grid lines and backgrounds, focusing the user's attention on the trends.
+Our visualization strategy was grounded in **Tufte’s Principles of Graphical Integrity**. We aimed to maximize the "Data-Ink Ratio" by removing unnecessary grid lines and backgrounds, focusing the user's attention on the trends. We also applied **Gestalt Principles** of grouping, using color consistency (green for renewable, red for fossil fuels) across different charts to help the user cognitively link related data points.
 
 ### 4.2 Dashboard Architecture
 The dashboard (`dashboard/app.py`) is a Single Page Application (SPA) built with **Dash Bootstrap Components** for a responsive grid layout.
 *   **Global Controls:** A sidebar contains a "Year Range" slider and "Country" dropdown. These inputs trigger Python callbacks that query the PostgreSQL database in real-time.
 *   **Visual Components:**
-    1.  **Main Trend Line:** Visualizes the "decoupling" effect. By plotting GDP and CO2 on dual axes (or normalized scales), users can visually confirm if lines diverge (good) or track together (bad).
-    2.  **Correlation Heatmap:** A 5x5 matrix showing Pearson correlations. We used a diverging 'RdBu' (Red-Blue) color scale. Red indicates positive correlation (GDP goes up, Energy goes up), while Blue indicates negative correlation.
-    3.  **Clustering Scatter Plot:** Displays the results of the K-Means analysis. Each point is a country-year, colored by its assigned cluster. This helps users visualize how countries move between clusters over time.
+    1.  **Main Trend Line (Time Series):** Visualizes the "decoupling" effect. By plotting Energy Use over time, users can see the trajectory of consumption.
+    2.  **Correlation Heatmap:** A 5x5 matrix showing Pearson correlations. We used a diverging 'RdBu' (Red-Blue) color scale. Red indicates positive correlation (GDP goes up, Energy goes up), while Blue indicates negative correlation. This immediately highlights the strong relationship between `climate_energy_use` and `climate_fossil_fuel_consumption`.
+    3.  **Clustering Scatter Plot:** Displays the results of the K-Means analysis. Each point is a country-year, colored by its assigned cluster. This helps users visualize how countries move between clusters over time (e.g., moving from "Developing" to "Green Leader").
 
 ## 5. Results and Evaluation
 
 ### 5.1 Statistical Findings
-The analysis of over 700+ data points yielded robust statistical insights.
+The analysis of over 11,500 initial records (filtered down to ~720 clean analysis rows) yielded robust statistical insights.
 *   **The Energy-GDP Nexus:** We found a Pearson correlation of **0.82** between `GDP per Capita` and `Energy Use`. This confirms that despite efficiency gains, economic activity is still heavily energy-intensive.
 *   **The Renewable Gap:** The correlation between `GDP` and `Renewable Energy %` is weak (**-0.15**). This indicates that wealth alone does not drive renewable adoption; policy decisions play a larger role. Some lower-GDP nations (like those in Latin America using hydropower) have higher renewable shares than wealthy fossil-fuel nations.
 
@@ -137,7 +141,7 @@ We executed a K-Means Clustering algorithm ($k=4$) to segment the nations.
 *   **Cluster 3 (Transition Economies):** Rapidly growing GDP with exploding emissions.
 
 **Regression Analysis:**
-A Random Forest Regressor was trained to predict CO2 emissions.
+A Random Forest Regressor (n_estimators=100) was trained to predict CO2 emissions.
 *   **R² Score:** 0.94 (The model explains 94% of the variance in emissions).
 *   **Feature Importance:**
     1.  Energy Use per Capita (72%)
@@ -146,10 +150,11 @@ A Random Forest Regressor was trained to predict CO2 emissions.
     4.  Urbanization (3%)
 *   *Interpretation:* Economic growth (GDP) is only a distal cause of emissions. The proximal cause is energy intensity. Policy should focus on energy efficiency (reducing the need for energy) rather than just degrowth.
 
-### 5.3 Technical Performance Evaluation
-*   **Pipeline Efficiency:** The full ETL process runs in approximately **45 seconds** for the full 23-year history of 30 countries.
-*   **Data Quality:** The final dataset in PostgreSQL has **0% null values** in the key analytical columns due to our robust interpolation strategy.
-*   **Scalability:** The MongoDB architecture allows us to add new indicators (e.g., Methane, NO2) without altering the existing schema or breaking the pipeline.
+### 5.3 Evaluation of Objectives
+*   **Objective 1 (Pipeline):** Met. The system successfully ingested over 11,500 records from the API.
+*   **Objective 2 (Database):** Met. Data exists in both MongoDB (Raw) and Postgres (Processed), verifying the Polyglot architecture.
+*   **Objective 3 (ML):** Met. Clusters successfully differentiate country types, and Regression R2 score > 0.90 indicates high predictive accuracy.
+*   **Objective 4 (Dashboard):** Met. The application renders interactive charts with sub-second latency.
 
 ## 6. Conclusions and Future Work
 
@@ -159,7 +164,7 @@ Our findings challenge the simplistic view that growth equals pollution. The ide
 
 ### 6.2 Limitations
 *   **Data Lag:** The World Bank data often lags by 1-2 years. Our interpolation methods, while statistically valid, are approximations of the current reality.
-*   **Scope:** We focused on 30 representative countries. A global analysis of 190+ countries would require more sophisticated distributed processing (e.g., Spark) to handle the increased load.
+*   **Scope:** We focused on 30 representative countries. A global analysis of 190+ countries would require more sophisticated distributed processing (e.g., Apache Spark) to handle the increased load.
 
 ### 6.3 Future Work
 1.  **Predictive Forecasting:** We plan to implement LSTM (Long Short-Term Memory) Recurrent Neural Networks to forecast CO2 trends through 2030, allowing for "What-If" scenario planning.
