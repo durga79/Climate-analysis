@@ -107,7 +107,14 @@ The foundation of the project is the \texttt{src/data\_acquisition} module. We c
 We created a base class \texttt{WorldBankFetcher} using the Python \texttt{requests} library. A critical challenge here was \textbf{Pagination}. The API returns data in pages of 50 records. Our script implements a recursive loop to detect the \texttt{total\_pages} metadata and iterate through all available pages to ensure complete data retrieval. We also implemented an \textbf{Exponential Backoff} strategy to handle API timeouts (retrying after 1s, 2s, 4s).
 
 \subsection{Database Architecture (Storage)}
-We implemented a \textbf{Tiered Storage Architecture}:
+We implemented a \textbf{Tiered Storage Architecture} (see Fig. \ref{fig:architecture}):
+
+\begin{figure}[htbp]
+\centering
+% \includegraphics[width=0.45\textwidth]{architecture_diagram} 
+\caption{Data Engineering Pipeline Architecture: From API to Dashboard}
+\label{fig:architecture}
+\end{figure}
 
 \subsubsection{Tier 1: Raw Data Lake (MongoDB)}
 We utilized MongoDB (hosted on MongoDB Atlas) \cite{mongodb2024} to store the raw API responses.
@@ -169,6 +176,13 @@ Our visualization strategy was grounded in \textbf{Tufte’s Principles of Graph
 
 \subsection{Dashboard Architecture}
 The dashboard (\texttt{dashboard/app.py}) is a Single Page Application (SPA) built with \textbf{Dash Bootstrap Components} for a responsive grid layout \cite{plotly2024}.
+\begin{figure}[htbp]
+\centering
+% \includegraphics[width=0.45\textwidth]{dashboard_main} 
+\caption{Interactive Climate Analytics Dashboard Main View}
+\label{fig:dashboard}
+\end{figure}
+
 \begin{itemize}
     \item \textbf{Global Controls:} A sidebar contains a ``Year Range'' slider and ``Country'' dropdown. These inputs trigger Python callbacks that query the PostgreSQL database in real-time.
     \item \textbf{Visual Components:}
