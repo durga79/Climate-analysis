@@ -178,8 +178,8 @@ Our visualization strategy was grounded in \textbf{Tufte’s Principles of Graph
 The dashboard (\texttt{dashboard/app.py}) is a Single Page Application (SPA) built with \textbf{Dash Bootstrap Components} for a responsive grid layout \cite{plotly2024}.
 \begin{figure}[htbp]
 \centering
-% \includegraphics[width=0.45\textwidth]{dashboard_main} 
-\caption{Interactive Climate Analytics Dashboard Main View}
+\includegraphics[width=0.45\textwidth]{docs/images/trend_energy_use.png} 
+\caption{Interactive Climate Analytics Dashboard Main View (Energy Trends)}
 \label{fig:dashboard}
 \end{figure}
 
@@ -202,13 +202,20 @@ The analysis of over 11,500 initial records (filtered down to $\approx$ 720 clea
     \item \textbf{The Renewable Gap:} The correlation between \texttt{GDP} and \texttt{Renewable Energy \%} is weak (\textbf{-0.15}). This indicates that wealth alone does not drive renewable adoption; policy decisions play a larger role. Some lower-GDP nations (like those in Latin America using hydropower) have higher renewable shares than wealthy fossil-fuel nations.
 \end{itemize}
 
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.45\textwidth]{docs/images/correlation_heatmap.png} 
+\caption{Pearson Correlation Matrix of Key Socio-Economic Indicators}
+\label{fig:corr}
+\end{figure}
+
 \subsection{Machine Learning Analysis}
 We executed a K-Means Clustering algorithm ($k=4$) to segment the nations.
 
 \begin{figure}[htbp]
 \centering
-% \includegraphics[width=0.45\textwidth]{cluster_plot} 
-\caption{K-Means Cluster Centroids (Placeholder for Screenshot)}
+\includegraphics[width=0.45\textwidth]{docs/images/kmeans_clusters.png} 
+\caption{K-Means Cluster Centroids: Grouping Countries by GDP and Renewable Adoption}
 \label{fig:kmeans}
 \end{figure}
 
@@ -232,6 +239,13 @@ A Random Forest Regressor ($n\_estimators=100$) \cite{scikit-learn} was trained 
     \end{enumerate}
     \item \textit{Interpretation:} Economic growth (GDP) is only a distal cause of emissions. The proximal cause is energy intensity. Policy should focus on energy efficiency (reducing the need for energy) rather than just degrowth.
 \end{itemize}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.45\textwidth]{docs/images/feature_importance.png} 
+\caption{Random Forest Feature Importance for Predicting CO2 Emissions}
+\label{fig:importance}
+\end{figure}
 
 \subsection{Evaluation of Objectives}
 \begin{itemize}
