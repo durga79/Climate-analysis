@@ -114,10 +114,13 @@ class MachineLearningAnalyzer:
         
     def perform_clustering(self, df: pd.DataFrame, n_clusters: int = 4) -> Tuple[np.ndarray, Dict]:
         feature_columns = [
-            'climate_co2_per_capita',
             'economic_gdp_per_capita',
-            'renewable_renewable_energy_consumption_pct'
+            'renewable_renewable_energy_consumption_pct',
+            'climate_energy_use'
         ]
+        
+        if 'climate_co2_per_capita' in df.columns:
+            feature_columns.append('climate_co2_per_capita')
         
         available_features = [col for col in feature_columns if col in df.columns]
         
@@ -198,8 +201,15 @@ class MachineLearningAnalyzer:
         cluster_labels, cluster_results = self.perform_clustering(df)
         
         df_clustered = df.copy()
-        valid_indices = df[['climate_co2_per_capita', 'economic_gdp_per_capita', 
-                           'renewable_renewable_energy_consumption_pct']].dropna().index
+        
+        # Use available columns for clustering context
+        cluster_cols = ['economic_gdp_per_capita', 'renewable_renewable_energy_consumption_pct']
+        if 'climate_co2_per_capita' in df.columns:
+            cluster_cols.append('climate_co2_per_capita')
+        elif 'climate_energy_use' in df.columns:
+             cluster_cols.append('climate_energy_use')
+            
+        valid_indices = df[cluster_cols].dropna().index
         df_clustered.loc[valid_indices, 'cluster'] = cluster_labels
         
         logger.info("\n[3/3] Sustainability Leaders Identification...")
